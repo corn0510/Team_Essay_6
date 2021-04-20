@@ -13,7 +13,47 @@ library(grid)
 library(gridExtra)
 theme_set(theme_bw())
 
-df <- read.csv("C:/Users/ariel/Desktop/Team_Essay_6/BTC-USD.csv")
+df <- read.csv("BTC-USD.csv")
 
-s
+df$Adj.Close <-ts(df$Adj.Close)
+```
+
+```{r}
+df$Date <- seq.Date(as.Date('2014-10-01'), by = 'month', length.out = length(df$Adj.Close))
+plot <- ggplot(df, aes(y = Adj.Close, x = Date )) + geom_line(col = 'red') +
+  labs(title = 'Adjusted Monthly Close', ylab = 'return')
+
+print(plot)
+```
+```{r}
+library(dynlm)
+# Step 1: Estimate mean equation r = beta + error
+df.mean <- dynlm(Adj.Close ~ 1, data = df)
+
+# Step 2: Retrieve the residuals from the former model and square them
+ehatsq <- ts(resid(df.mean)^2)
+
+# Step 3: regress squared residuals on one-lagged squared residuals
+df.arch <- dynlm(ehatsq ~ L(ehatsq), data = ehatsq)
+
+summary(df.arch)
+```
+
+```{r}
+library(FinTS)
+df.archTest <- ArchTest(df$Adj.Close, lags = 1, demean = TRUE)
+df.archTest
+
+#Reject Null Hypothesis
+```
+
+```{r}
+library(fGarch)
+arch.fit <- garchFit(~garch(1,0), data = df$Adj.Close, trace = F)
+summary(arch.fit)
+```
+
+```{r}
+df$ht <- arch.fit@h.t
+ggplot(df, aes(y = ht, x = Date)) + geom_line(col = '#ff9933') + ylab('Conditional Variance') + xlab('Date')
 ```
