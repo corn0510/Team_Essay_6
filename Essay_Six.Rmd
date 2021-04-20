@@ -1,0 +1,19 @@
+---
+title: "Team_Essay_6"
+author: "Ariel Lutati"
+date: "4/20/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(foreign)
+library(ggplot2)
+library(grid)
+library(gridExtra)
+theme_set(theme_bw())
+
+df <- read.csv("C:/Users/ariel/Desktop/Team_Essay_6/BTC-USD.csv")
+
+s
+```
