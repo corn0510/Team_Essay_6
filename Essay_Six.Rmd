@@ -20,13 +20,9 @@ df$Adj.Close <-ts(df$Adj.Close)
 ```
 
 ```{r}
-df$Date <- seq.Date(as.Date('2014-10-01'), by = 'month', length.out = length(df$Adj.Close))
+df$Date <- seq.Date(as.Date('2014-10-01'), by = 'day', length.out = length(df$Adj.Close))
 #df <- as.numeric(df)
-df$Open <- as.numeric(df$Open)
-df$High <- as.numeric(df$High)
-df$Low <- as.numeric(df$Low)
-df$Close <- as.numeric(df$Close)
-df$Volume <- as.numeric(df$Volume)
+
 str(df)
 plot <- ggplot(df, aes(y = Adj.Close, x = Date )) + geom_line(col = 'red') +
   labs(title = 'Adjusted Monthly Close', ylab = 'return')
