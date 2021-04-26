@@ -25,8 +25,12 @@ df$Date <- seq.Date(as.Date('2014-10-01'), by = 'day', length.out = length(df$Ad
 
 str(df)
 plot <- ggplot(df, aes(y = Adj.Close, x = Date )) + geom_line(col = 'red') +
-  labs(title = 'Adjusted Monthly Close', ylab = 'return')
+  labs(title = 'Adjusted Daily Close', ylab = 'return')
 plot
+```
+```{r}
+train.data = df[1:2285,]
+test.data = df[2286:2410,]
 ```
 
 ```{r}
@@ -55,6 +59,9 @@ df.archTest
 library(fGarch)
 arch.fit <- garchFit(~garch(1,0), data = df$Adj.Close, trace = F)
 summary(arch.fit)
+pred <- predict(arch.fit, n.ahead = 100, trace = TRUE, mse = c("cond","uncond"),
+        plot=TRUE, nx=NULL, crit_val=NULL, conf=NULL)
+summary(pred)
 ```
 
 ```{r}
