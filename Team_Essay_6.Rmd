@@ -43,41 +43,24 @@ Anthony.
 
 ```{r}
 
-# Bit coin data-set
-btc_data <- read_excel("BTC-USD.xlsx")
-btc_data <- na.omit(btc_data)
-btc_data <- df[1:2411,]
-btc_data <- btc_data %>%
-  rename(
-    "Date" = "Date",
-    "Open" = "Open",
-    "High" = "High",
-    "Low" = "Low",
-    "Close" = "Close",
-    "Adj_Close" = "Adj Close",
-    "Volume" = "Volume"
-  )
-
-
 # FB data-set
 fb <- getSymbols("FB", auto.assign = F)
 nrow(fb) # Gives you the number of data points
 fbClose <- fb$FB.Close # We can get each column by specifying the clumn name after '$' sign
 
+# FB data-set
+fb.df <- as.data.frame(fb)
+fb_train_data = fb.df[1:2100,]
+fb_test_data = fb.df[2100:2247,]
+
+fb.df <- cbind(Date = rownames(fb.df), fb.df)
+rownames(fb.df) <- 1:nrow(fb.df)
 ```
 
 
 ## Visualization
 
 ```{r}
-# Bit coin data-set
-plot.ts(btc_data$Adj_Close)
-plot.ts(btc_data$Volume)
-plot.ts(btc_data$High)
-plot.ts(btc_data$Low)
-plot.ts(btc_data$Open)
-plot.ts(btc_data$Close)
-
 # FB data-set
 chartSeries(fb) # Plots the time series
 ```
@@ -85,48 +68,19 @@ chartSeries(fb) # Plots the time series
 ## Analysis
 
 ```{r}
-# This gives problem for the Bit coin data-set
-btc_data$Adj_Close <- ts(btc_data$Adj_Close)
-Adj_Close_plot <- ggplot(btc_data, aes(y = Adj_Close, x = Date)) + geom_line(col = 'blue') + labs(ylab = 'return', xlab = 'Time', title = 'Adj_Close Returns')
-grid.arrange(Adj_Close_plot, ncol = 2);
-
 # FB data-set
-# For now, I need to figure out how to name the dates column, then we can substitute "FB.Open" with "FB.Date"
-fbClose_plot <- ggplot(fb, aes(y = FB.Close, x = FB.Open)) + geom_line(col = 'blue') + labs(ylab = 'return', xlab = 'Time', title = 'Adj_Close Returns')
+#For now, I need to figure out how to name the dates column, then we can substitute "FB.Open" with "FB.Date"
+fbClose_plot <- ggplot(fb.df, aes(y = FB.Close, x = Date)) + geom_line(col = 'blue', group = 1) + labs(ylab = 'return', xlab = 'Time', title = 'Adj_Close Returns')
 grid.arrange(fbClose_plot, ncol = 2);
+fbClose_plot
 ```
 
 ```{r}
-# Bit coin data-set
-btc_data$Date <- seq.Date(as.Date('2014-10-01'), by = 'day', length.out = length(btc_data$Adj_Close))
-ggplot(btc_data, aes(y = Adj_Close, x = Date )) + geom_line(col = 'red') +
-  labs(title = 'Adjusted Daily Close', ylab = 'return')
-
 # FB data-set
 # Same concern, for now just try to figure out how to name "FB.Date"
 ```
 ## Model Evaluation
 ```{r}
-# Bit coin data-set
-train_data = btc_data[1:2285,]
-test_data = btc_data[2286:2410,]
-
-# Step 1: Estimate mean equation r = beta + error
-btc_data_mean <- dynlm(Adj_Close ~ 1, data = btc_data)
-
-# Step 2: Retrieve the residuals from the former model and square them
-ehatsq <- ts(resid(btc_data_mean)^2)
-
-# Step 3: regress squared residuals on one-lagged squared residuals
-btc_data_arch <- dynlm(ehatsq ~ L(ehatsq), data = ehatsq)
-
-summary(btc_data_arch)
-
-# FB data-set
-fb.df <- as.data.frame(fb)
-fb_train_data = fb.df[1:2100,]
-fb_test_data = fb.df[2100:2247,]
-
 # Step 1: Estimate mean equation r = beta + error
 fb_data_mean <- dynlm(FB.Close ~ 1, data = fb.df)
 
@@ -141,12 +95,6 @@ summary(fb_data_arch)
 
 
 ```{r}
-# Bit coin data-set
-btc_data_archTest <- ArchTest(btc_data$Adj_Close, lags = 1, demean = TRUE)
-btc_data_archTest
-
-#Reject Null Hypothesis
-
 # FB data-set
 fb_data_archTest <- ArchTest(fbClose, lags = 1, demean = TRUE)
 fb_data_archTest
@@ -157,37 +105,21 @@ Because the p-value is < 0.05, we reject the null hypothesis and conclude the pr
 
 ## Prediction and Model Accuracy
 ```{r}
-# Replace btc_data with test_data and that will work, but why?
-# arch_fit <- garchFit(~garch(1,0), data = btc_data$Adj_Close, trace = F)
-# summary(arch_fit)
-# pred <- predict(arch_fit, n.ahead = 100, trace = TRUE, mse = c("cond","uncond"),
-#         plot=TRUE, nx=NULL, crit_val=NULL, conf=NULL)
-# summary(pred)
-# 
-# btc_data$ht <- arch_fit@h.t
-# ggplot(btc_data, aes(y = ht, x = Date)) + geom_line(col = '#ff9933') + ylab('Conditional Variance') + xlab('Date')
-
 # FB data-set
 head(fb.df)
 fb_arch_fit <- garchFit(~garch(1,0), data = fbClose, trace = F)
 summary(fb_arch_fit)
-fb_pred <- predict(arch_fit, n.ahead = 100, trace = TRUE, mse = c("cond","uncond"),
+fb_pred <- predict(fb_arch_fit, n.ahead = 100, trace = TRUE, mse = c("cond","uncond"),
         plot=TRUE, nx=NULL, crit_val=NULL, conf=NULL)
-summary(pred)
+summary(fb_pred)
 
 fb.df$ht <- fb_arch_fit@h.t
 # How to rename the first column as "Date"?
-ggplot(fb.df, aes(y = ht, x = FB.Open)) + geom_line(col = '#ff9933') + ylab('Conditional Variance') + xlab('Date')
+ggplot(fb.df, aes(y = ht, x = Date)) + geom_line(col = '#ff9933', group = 1) + ylab('Conditional Variance') + xlab('Date')
 ```
 
 
 ```{r}
-# Bit coin data-set
-# This doesn't work
-# btc1 <- ugarchspec(variance.model = list(model = "sGARCH", garchOrder = c(1, 1)), mean.model = list(armaOrder = c(0, 0)), distribution.model = "std")
-# 
-# btcGarch1 <- ugarchfit(spec = btc1, data = btc_data$High)
-
 # FB data-set
 # We can change the armaOrder to create different models and keep the model with lowest AIC!
 fb1 <- ugarchspec(variance.model = list(model = "sGARCH", garchOrder = c(1, 1)), mean.model = list(armaOrder = c(1, 1)), distribution.model = "std")
