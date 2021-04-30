@@ -7,39 +7,36 @@ output: pdf_document
 
 ## Introduction
 
-Anthony.
+Trang.
 
 ## Loading R packages
 
-Anthony and Trang please list why each package is used.
-
 ```{r}
-library(foreign)
-library(readxl)
-library(ggplot2)
-library(grid)
-library(quadprog)
-library(rugarch)
-library(rmgarch)
-library(quantmod)
-library(e1071)
-library(gridExtra)
-library(zoo)
-library(fGarch)
-library(dynlm)
-library(tidyverse)
-library(fGarch)
-library(FinTS)
+library(foreign) # Allows us to import data from common statistical packages
+library(ggplot2) # Used for plotting data
+library(grid) # Used to arrange plots of data
+library(gridExtra) # Used to arrange plots
+library(rugarch) # Used for creating Garch models
+library(quantmod) # Used for plotting time series 
+library(fGarch) # Used to estimate variance 
+library(dynlm) # Used to estimate mean equation 
+library(tidyverse) #Used for data manipulation
+library(FinTS) # Used to perform Arch test and check ARCH effects
 theme_set(theme_bw())
 ```
 
 ## Formula and Basics
 
-Anthony.
+Trang.
 
 ## Data description
 
-Anthony and Ariel.
++ FB.Open: The opening price of 1 share (in USD) of facebook once the market opens
++ FB.High: The highest price of 1 share (in USD) of facebook on the given day 
++ FB.Low: The lowest price of 1 share (in USD) of facebook on the given day 
++ FB.Close: The closing price of 1 share (in USD) of facebook once the market closes
++ FB.Volume: The number of shares of facebook traded on the given day 
++ FB.adjusted: The adjusted closing price of 1 share (in USD) of facebook after accounting corporate actions
 
 ```{r}
 # FB data-set
