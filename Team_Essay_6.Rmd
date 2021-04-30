@@ -48,12 +48,14 @@ nrow(fb) # Gives you the number of data points
 
 # FB data-set
 fb.df <- as.data.frame(fb)
-fb_train_data = fb.df[1:2100,]
-fb_test_data = fb.df[2100:2247,]
+
 
 # Renaming the phantom "Date" column
 fb.df <- cbind(Date = rownames(fb.df), fb.df)
 rownames(fb.df) <- 1:nrow(fb.df)
+
+fb_train_data = fb.df[1:2100,]
+fb_test_data = fb.df[2100:2247,]
 ```
 
 
@@ -87,7 +89,7 @@ ggplot(fb.df, aes(y = FB.Adjusted, x = Date )) + geom_line(col = 'red', group = 
 
 ```{r}
 # Step 1: Estimate mean equation r = beta + error
-fb_data_mean <- dynlm(FB.Adjusted ~ 1, data = fb.df)
+fb_data_mean <- dynlm(FB.Adjusted ~ 1, data = fb_train_data)
 
 # Step 2: Retrieve the residuals from the former model and square them
 ehatsq <- ts(resid(fb_data_mean)^2)
@@ -101,7 +103,7 @@ summary(fb_data_arch)
 
 ```{r}
 # FB data-set
-fb_data_archTest <- ArchTest(fb.df$FB.Adjusted, lags = 1, demean = TRUE)
+fb_data_archTest <- ArchTest(fb_train_data$FB.Adjusted, lags = 1, demean = TRUE)
 fb_data_archTest
 
 #Reject Null Hypothesis
@@ -111,7 +113,7 @@ Because the p-value is < 0.05, we reject the null hypothesis and conclude the pr
 ```{r}
 # FB data-set
 # Plot the conditional variance
-fb_arch_fit <- garchFit(~garch(1,0), data = fb.df$FB.Adjusted, trace = F)
+fb_arch_fit <- garchFit(~garch(1,0), data = fb_train_data$FB.Adjusted, trace = F)
 
 summary(fb_arch_fit)
 
@@ -120,9 +122,9 @@ fb_pred <- predict(fb_arch_fit, n.ahead = 100, trace = TRUE, mse = c("cond","unc
 
 summary(fb_pred)
 
-fb.df$ht <- fb_arch_fit@h.t
+fb_train_data$ht <- fb_arch_fit@h.t
 # How to rename the first column as "Date"?
-ggplot(fb.df, aes(y = ht, x = Date)) + geom_line(col = '#ff9933', group = 1) + ylab('Conditional Variance') + xlab('Date')
+ggplot(fb_train_data, aes(y = ht, x = Date)) + geom_line(col = '#ff9933', group = 1) + ylab('Conditional Variance') + xlab('Date')
 ```
 Looking at the graph, you can see the periods in which volatility was high.
 
@@ -132,35 +134,42 @@ Looking at the graph, you can see the periods in which volatility was high.
 # FB data-set
 # We can change the armaOrder to create different models and keep the model with lowest AIC!
 
-# 1st Model
+# 1st Model: AIC = 4.0681
 fb1 <- ugarchspec(variance.model = list(model = "sGARCH", garchOrder = c(1, 1)), mean.model = list(armaOrder = c(1, 1)), distribution.model = "std")
 
-fbGarch1 <- ugarchfit(spec = fb1, data = fb.df$FB.Adjusted)
+fbGarch1 <- ugarchfit(spec = fb1, data = fb_train_data$FB.Adjusted)
 
-# 2nd Model: AIC = 10.432
+# 2nd Model: AIC = 10.437
 fb2 <- ugarchspec(variance.model = list(model = "sGARCH", garchOrder = c(1, 1)), mean.model = list(armaOrder = c(0, 0)), distribution.model = "std")
 
 fbGarch2 <- ugarchfit(spec = fb2, data = fb.df$FB.Adjusted)
 
-# 3rd Model: AIC =  4.2241
+# 3rd Model: Does not converge
 fb3 <- ugarchspec(variance.model = list(model = "sGARCH", garchOrder = c(1, 1)), mean.model = list(armaOrder = c(1, 0)), distribution.model = "std")
 
 fbGarch3 <- ugarchfit(spec = fb3, data = fb.df$FB.Adjusted)
 
-# 4th Model: AIC = 9.2361
+# 4th Model: AIC = 9.2589
 fb4 <- ugarchspec(variance.model = list(model = "sGARCH", garchOrder = c(1, 1)), mean.model = list(armaOrder = c(0, 1)), distribution.model = "std")
 
 fbGarch4 <- ugarchfit(spec = fb4, data = fb.df$FB.Adjusted)
 ```
 From the above computations, we say that fGarch 3 was a better model as it has an AIC = 4.2241, which is the lowest amongst the rest. We will use this model to make predictions.
 
-Ilya does the forecasting. (Ariel can help)
 ```{r}
 # FB data-set 
 # Finally forecast whatever you want!
 # This is an example of what you want to forecast where n.ahead is the number of predictions you want to make and fbGarch3 is an example for the model that you want to use.
-fbPredict <- ugarchboot(fbGarch3, n.ahead = 10, method = c("Partial", "Full")[1])
+fbPredict <- ugarchboot(fbGarch1, n.ahead = 10, method = c("Partial", "Full")[1])
+fbPredict
 plot(fbPredict, which = 2)
+plot(fb_test_data$FB.Adjusted, xlab="Forecasted days ahead", ylab="Adjusted", main="FB Forecast")
+
+pred <- as.data.frame(as.table(fbGarch4@fit$fitted.values))
+pred <- pred[1:10, ]
+testPred <- as.data.frame(fb_test_data)
+testPred <- testPred[1:10, ]
+mean(abs((pred$Freq-testPred$FB.Adjusted)/pred$Freq)) # Prediction Error
 ```
 
 ## Conclusion
