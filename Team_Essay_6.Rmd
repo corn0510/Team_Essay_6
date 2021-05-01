@@ -7,7 +7,7 @@ output: pdf_document
 
 ## Introduction
 
-Trang.
+In this essay, our team use garch model, Generalized Autoregressive Conditional Heteroskedasticity, an extension of the ARCH model that incorporates a moving average component together with the autoregressive component to predict the adjusted prices of Facebook stocks from May 18th 2012 to April 28th 2021 ( the day our group downloaded the data set). The day the inbuilt dataset is downloaded determines the size of the dataset, so it's never a constant value. We found the number of data points to be 2251, as that's simply the number of days that have passed from May 19 2012 to April 28 this year. Our team make the prediction based on variables such as: opening price(USD), closing price(USD) , highest price(USD), lowest price(USD), the number of shares trade on given day(unit) and the adjusted closing price(USD).
 
 ## Loading R packages
 
