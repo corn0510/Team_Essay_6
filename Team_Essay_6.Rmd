@@ -30,13 +30,13 @@ theme_set(theme_bw())
 For auto-regressive AR(1)
 
 $$Y_t = \phi + e_t \qquad [1]\ $$
-$$et|T{t-1} \sim N(0,h_t) \qquad [2]\$$
-$$h_t = \alpha_0 + \alpha1e^2{t-1} , \alpha_0 \gt 0, 0 \le \alpha_1 \lt 1 \qquad [3]\$$
+$$e_t|I_{t-1} \sim N(0,h_t) \qquad [2]\$$
+$$h_t = \alpha_0 + \alpha_1e^2_{t-1} , \alpha_0 \gt 0, 0 \le \alpha_1 \lt 1 \qquad [3]\$$
 
 Equation [1] is the mean equation
 
 Test for Arch effect
-$$\hat{e}^2_t = \gamma_0 +\gamma1\hat{e}^2{t-1} + \dots + \gammaq\hat{e}^2{t-q} + \nu \qquad [4]\$$
+$$\hat{e}^2_t = \gamma_0 +\gamma_1\hat{e}^2_{t-1} + \dots + \gamma_q\hat{e}^2_{t-q} + \nu \qquad [4]\$$
 
 Hypothesis test:
 
@@ -44,7 +44,7 @@ $$H_0 : \gamma_1 = \gamma_2 = \dots =\gamma_q =0 \  H_A: \gamma_1 \ne0\ or \dots
 
 The test shown in [4] may include several lag terms, in which case the null hypothesis [5] would be that all of them are jointly insignificant.
 
-In that : $\hat{e}t$ : estimated residual
+In that : $\hat{e}_t$ : estimated residual
           $\nu$ : random error term
 
 If there is no ARCH effect, the test statistic is
